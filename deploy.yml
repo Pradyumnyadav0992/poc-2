@@ -1,0 +1,18 @@
+---
+- name: Deploy WAR to Tomcat
+  hosts: web
+  become: yes
+
+  tasks:
+    - name: Copy WAR file to Tomcat webapps
+      copy:
+        src: /path/to/your/sample-app.war
+        dest: /opt/tomcat/webapps/sample-app.war
+        owner: tomcat
+        group: tomcat
+        mode: '0644'
+
+    - name: Restart Tomcat service
+      systemd:
+        name: tomcat
+        state: restarted
