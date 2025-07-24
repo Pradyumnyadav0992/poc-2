@@ -1,10 +1,20 @@
 pipeline {
-    agent any
+    agent {
+        node {
+        label 'Slave_node1'
+        customWorkspace '/home/ubuntu/jenkins_workspace/' 
+        }
+    }
+	
+	tools {
+	    ansible 'ansible-agent'
+        maven 'Maven_3.9.6'  
+    }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/yourusername/sample-app.git'
+                git branch: 'main', url: 'https://github.com/Pradyumnyadav0992/poc-2.git '
             }
         }
 
@@ -20,12 +30,24 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+		stage('Deploy') {
+			steps {
+				ansiblePlaybook(
+					playbook: 'deploy.yml',
+					inventory: 'localhost,',
+					extraVars: [
+						war_src: "${env.WORKSPACE}/target/poc-2.war"
+					]
+				)
+			}
+		}
+
+		
+		stage('Cleanup Workspace') {
             steps {
-                ansiblePlaybook credentialsId: 'ansible-ssh-key',
-                                 inventory: 'inventory.ini',
-                                 playbook: 'deploy.yml'
+                cleanWs()
             }
         }
+		
     }
 }
