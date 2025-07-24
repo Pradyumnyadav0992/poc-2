@@ -1,34 +1,26 @@
-- name: Deploy WAR to custom Tomcat
-  hosts: web
+- name: Deploy WAR to local Tomcat
+  hosts: localhost
   become: yes
+  connection: local
 
   vars:
-    war_src: /path/to/jenkins/workspace/target/sample-app.war
-    war_dest: /home/ubuntu/pradyumn/apache-tomcat-9.0.107/webapps/poc-2.war
-    tomcat_bin: /home/ubuntu/pradyumn/apache-tomcat-9.0.107/bin
+    tomcat_dir: /home/ubuntu/pradyumn/apache-tomcat-9.0.107
+    war_dest: "{{ tomcat_dir }}/webapps/poc-2.war"
 
   tasks:
     - name: Stop Tomcat
-      shell: "{{ tomcat_bin }}/shutdown.sh"
-      args:
-        chdir: "{{ tomcat_bin }}"
-      become_user: ubuntu
+      shell: "{{ tomcat_dir }}/bin/shutdown.sh || true"
 
     - name: Remove existing exploded WAR folder
       file:
         path: "{{ war_dest | regex_replace('\\.war$', '') }}"
         state: absent
 
-    - name: Copy WAR file to Tomcat webapps
+    - name: Copy WAR to Tomcat webapps
       copy:
         src: "{{ war_src }}"
         dest: "{{ war_dest }}"
-        owner: ubuntu
-        group: ubuntu
         mode: '0644'
 
     - name: Start Tomcat
-      shell: "{{ tomcat_bin }}/startup.sh"
-      args:
-        chdir: "{{ tomcat_bin }}"
-      become_user: ubuntu
+      shell: "{{ tomcat_dir }}/bin/startup.sh"
